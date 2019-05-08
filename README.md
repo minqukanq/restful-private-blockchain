@@ -49,14 +49,14 @@ The API is runs on localhost, with port 8000.
 
 
 
-##Test the application
+## Test the application
 
 #### GET Block
  * URL : `/block/{BLOCK_HEIGHT}`
 
  * Method : `GET`
 
- * URL Path Params : `BLOCK_HEIGHT (Retrive Block Height)`
+ * URL Path Params : `BLOCK_HEIGHT` (Retrive Block Height)
 
    ***
 
