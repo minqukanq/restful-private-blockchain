@@ -58,11 +58,10 @@ The API is runs on localhost, with port 8000.
 
  * URL Path Params : `BLOCK_HEIGHT` (Retrive Block Height)
 
-   ***
-
 ```
 curl --request GET -i http://localhost:8000/block/0  # will return Block #0 from blockchain
 ```
+***
 #### POST Block
 * URL :     /block
 * Method : `GET`
