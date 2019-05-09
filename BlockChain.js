@@ -48,20 +48,18 @@ class Blockchain {
         // UTC timestamp
         newBlock.time = new Date().getTime().toString().slice(0, -3);
         console.log(height)
-        return db.getLevelDBData(height - 1);
-      }).then((lastBlock) => {
-        // previous block hash
-        console.log(lastBlock.height)
-        newBlock.previousBlockHash = lastBlock.hash;
-        // Block hash with SHA256 using newBlock and converting to a string
-        newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-        return newBlock;
-      }).then((newBlock) => {
-        // Adding block object to chain
-        db.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString())
-      }).catch((err) => {
-        reject('Unable to get block height! => block not added.', err);
-      });
+        return height;
+      }).then((height) => {
+        this.getBlock(height - 1).then((lastBlock)=>{
+          // previous block hash
+          newBlock.previousBlockHash = lastBlock.hash;
+          // Block hash with SHA256 using newBlock and converting to a string
+          newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+          db.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString())
+        }).catch((err)=>{
+          reject('Unable to get previous block! => block not added.', err);
+        })
+      })
     });
   }
 
@@ -95,6 +93,7 @@ class Blockchain {
         block.hash = '';
         let validBlockHash = SHA256(JSON.stringify(block)).toString();
         if (blockHash == validBlockHash) {
+          console.log('Block #' + blockHeight + ' Valid Block');
           resolve(true);
         } else {
           console.log('Block #' + blockHeight + ' invalid hash:\n' + blockHash + '<>' + validBlockHash);
