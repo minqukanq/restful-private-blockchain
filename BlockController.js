@@ -7,10 +7,6 @@ const BlockChain = require('./BlockChain.js');
  */
 class BlockController {
 
-    /**
-     * Constructor to create a new BlockController, you need to initialize here all your endpoints
-     * @param {*} app 
-     */
     constructor(app) {
         this.app = app;
         this.blockChain = new BlockChain.Blockchain();
@@ -19,9 +15,6 @@ class BlockController {
         this.postNewBlock();
     }
 
-    /**
-     * Implement a GET Endpoint to retrieve a block by index, url: "/api/block/:index"
-     */
     getBlockByIndex() {
         this.app.get("/block/:blockHeight", (req, res) => {
             return this.blockChain.getBlock(req.params.blockHeight).then(result => {
@@ -34,20 +27,8 @@ class BlockController {
         });
     }
 
-    /**
-     * Implement a POST Endpoint to add a new Block, url: "/api/block"
-     */
     postNewBlock() {
         this.app.post("/block", (req, res) => {
-            // Add your code here
-            let block = new BlockClass.Block('Add test Block');
-            block.height = this.block.length + 1;
-            block.hash = SHA256(JSON.stringify(block)).toString();
-            this.blocks.push(block);
-        });
-    }
-    postNewBlock() {
-        this.app.post("/api/block", (req, res) => {
             if (req.body.data) {
                 console.log(req.body.data)
                 return this.blockChain.addBlock(new BlockClass.Block(req.body.data)).then(result => {
