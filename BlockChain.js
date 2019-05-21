@@ -1,130 +1,61 @@
-/* ===== SHA256 with Crypto-js ===============================
-|  Learn more: Crypto-js: https://github.com/brix/crypto-js  |
-|  =========================================================*/
+    /* ===== Blockchain Class ==========================
+    |  Class with a constructor for new blockchain 		|
+    |  ================================================*/
+    const SHA256 = require('crypto-js/sha256');
+    const LevelSandbox = require('./LevelSandbox.js');
+    const Block = require('./Block.js');
 
-const SHA256 = require('crypto-js/sha256');
-const db = require('./levelSandbox');
-const Block = require('./Block')
+    class Blockchain {
 
-/* ===== Blockchain Class ==========================
-|  Class with a constructor for new blockchain 		|
-|  ================================================*/
-
-class Blockchain {
-  constructor() {
-    this.genereateGenesisBlock();
-  }
-
-  genereateGenesisBlock() {
-    return this.getBlockHeight().then((height) => {
-      if (height === 0) {
-        console.log('\nGenesis Block being created...');
-        let genesisBlock = new Block.Block('Genesis Block');
-        genesisBlock.time = new Date().getTime().toString().slice(0, -3);
-        genesisBlock.height = height;
-        genesisBlock.hash = SHA256(JSON.stringify(genesisBlock)).toString();
-        console.log(genesisBlock);
-        db.addLevelDBData(height, JSON.stringify(genesisBlock).toString())
-          .then((genesisBlock) => {
-            console.log('Added Genesis Block:');
-            console.log(genesisBlock);
-          }).catch((err) => {
-            console.log('Unable to add Genesis block!', err);
-          });
-      } else {
-        console.log('\nGenesis Block already exists');
-      }
-    }).catch((err) => {
-      console.log('Unable to add Genesis Block!', err);
-    })
-  }
-
-  // Add new block
-  addBlock(newBlock) {
-    return new Promise((resolve, reject) => {
-      // Block height
-      this.getBlockHeight().then((height) => {
-        newBlock.height = height;
-        // UTC timestamp
-        newBlock.time = new Date().getTime().toString().slice(0, -3);
-        console.log(height)
-        return height;
-      }).then((height) => {
-        this.getBlock(height - 1).then((lastBlock)=>{
-          // previous block hash
-          newBlock.previousBlockHash = lastBlock.hash;
-          // Block hash with SHA256 using newBlock and converting to a string
-          newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-          db.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString())
-        }).catch((err)=>{
-          reject('Unable to get previous block! => block not added.', err);
-        })
-      })
-    });
-  }
-
-  // Get block height
-  getBlockHeight() {
-    return new Promise((resolve, reject) => {
-      db.getCountEntries().then((height) => {
-        resolve(height);
-      }).catch((err) => {
-        reject(err);
-      });
-    });
-  }
-
-  // get block
-  getBlock(blockHeight) {
-    return new Promise((resolve, reject) => {
-      db.getLevelDBData(blockHeight).then((value) => {
-        resolve(JSON.parse(value));
-      }).catch((err) => {
-        reject(err);
-      });
-    });
-  }
-
-  // validate block
-  validateBlock(blockHeight) {
-    return new Promise((resolve, reject) => {
-      this.getBlock(blockHeight).then((block) => {
-        let blockHash = block.hash;
-        block.hash = '';
-        let validBlockHash = SHA256(JSON.stringify(block)).toString();
-        if (blockHash == validBlockHash) {
-          console.log('Block #' + blockHeight + ' Valid Block');
-          resolve(true);
-        } else {
-          console.log('Block #' + blockHeight + ' invalid hash:\n' + blockHash + '<>' + validBlockHash);
-          reject(false);
+        constructor() {
+            this.bd = new LevelSandbox.LevelSandbox();
+            this.generateGenesisBlock();
         }
-      }).catch((err) => {
-        console.log('Unable to get block #' + blockHeight);
-        reject(err);
-      })
-    });
-  }
 
-  // Validate blockchain
-  validateChain() {
-    let errorLog = [];
-    for (var i = 0; i < this.chain.length - 1; i++) {
-      // validate block
-      if (!this.validateBlock(i)) errorLog.push(i);
-      // compare blocks hash link
-      let blockHash = this.chain[i].hash;
-      let previousHash = this.chain[i + 1].previousBlockHash;
-      if (blockHash !== previousHash) {
-        errorLog.push(i);
-      }
+        // Generate the Genesis Block (the first block)
+        generateGenesisBlock(){
+            this.getBlockHeight().then((height) => {
+                if (height == -1){
+                    this.addBlock(new Block.Block("Genesis Block")).then((result) => {
+                        console.log(result);
+                    }).catch((err) =>  {
+                        console.log(err);
+                    });
+                }
+            }).catch((err) => { console.log(err);});
+        }
+
+        // Get block height, it is auxiliar method that return the height of the blockchain
+        getBlockHeight() {
+            return this.bd.getBlocksCount();
+        }
+
+        // Add new block
+        addBlock(block) {
+            return this.bd.addBlock(block); 
+        }
+
+        // Get Block By Height
+         getBlock(height) {
+            return this.bd.getBlock(height);        
+        }
+
+        // Validate if Block is being tampered by Block Height
+        validateBlock(height) {
+            return this.bd.validateBlock(height);
+        }
+
+        // Validate the entire Blockchain
+        validateChain() {
+            return this.bd.validateChain();
+        }
+
+        // Utility Method to Tamper a Block for Test Validation
+        // This method is for testing purpose
+        _modifyBlock(height, block) {
+            return this.bd.addLevelDBData(height, JSON.stringify(block).toString());
+        }
+       
     }
-    if (errorLog.length > 0) {
-      console.log('Block errors = ' + errorLog.length);
-      console.log('Blocks: ' + errorLog);
-    } else {
-      console.log('No errors detected');
-    }
-  }
-}
-module.exports.Blockchain = Blockchain;
+
+    module.exports.Blockchain = Blockchain;
