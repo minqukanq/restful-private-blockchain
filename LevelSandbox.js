@@ -20,10 +20,8 @@ class LevelSandbox {
       self.db.put(key, value, function (err) {
         if (err) reject('Block ' + key + ' submission failed');
       })
-      if (key == 0)
-        resolve("Success to insert the Genesis Block");
-      else
-        //resolve("Success to insert the new block " + key);
+        console.log(key)
+        console.log(value)
         resolve(value);
     });
   }
@@ -73,8 +71,9 @@ class LevelSandbox {
   // Return a specific block
   getBlock(blockHeight) {
     let self = this;
+    console.log(blockHeight);
     return new Promise((resolve, reject) => {
-      self.db.get(blockHeight, function (err, value) {
+      self.db.get(blockHeight, function (err=false, value) {
         if (err) {
           reject('Block Not Found!', err);
         } else {
@@ -86,7 +85,6 @@ class LevelSandbox {
           b.previousBlockHash = JSON.parse(value).previousBlockHash;
           resolve(b);
         }
-
       });
     })
   }

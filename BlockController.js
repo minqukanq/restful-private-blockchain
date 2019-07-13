@@ -23,9 +23,12 @@ class BlockController {
      */
     getBlockByIndex() {
         this.app.get("/block/:index", (req, res) => {
-            this.blockchain.getBlock(req.params["index"]).then((block) => {
-                res.status(200).json(block);
-             }).catch((err) => { res.status(404).json("Block " + req.params["index"] + " not found!\n", err);});
+            this.blockchain.getBlock(req.params.index)
+                .then((block) => {
+                        res.status(200).json( block );
+                }).catch((err) => {
+                        res.status(404).send("Block not found!\n");
+                });
         });
 
         this.app.get("/block/", (req, res) => {
@@ -38,10 +41,15 @@ class BlockController {
      */
     postNewBlock() {
         this.app.post("/block/", (req, res) => {
-            let data = req.body.body;            
+            let data = req.body.data;
+            if(req.body.data === ''){
+                res.status(400).send("You must send valid request");
+            }  
             let block = new BlockClass.Block(data);
             this.blockchain.addBlock(block).then((result) => {
-                res.status(201).json(result);
+                res.status(201).json( JSON.parse(result) );
+            }).catch(err=>{
+                res.status(403).send( "You can't add Block");
             });
         });
     }
